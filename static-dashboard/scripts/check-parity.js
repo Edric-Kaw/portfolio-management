@@ -1,0 +1,12 @@
+import {spawnSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+import {demoSource} from '../src/demo.js';
+import {normalize,calculate,metrics} from '../src/asset-analysis.js';
+const python=process.argv[2]??'../.venv/Scripts/python.exe';
+const source=demoSource();
+const result=spawnSync(python,['scripts/python-reference.py'],{input:JSON.stringify(source),encoding:'utf8'});
+if(result.status!==0)throw new Error(result.stderr||result.error?.message||'Python reference failed');
+const reference=JSON.parse(result.stdout),calculated=calculate(normalize(source)),m=metrics(calculated,'2026-09-30');
+const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} differs from ${b}`);
+close(m.total,reference.total);close(m.yield,reference.yield);close(m.liquid,reference.liquid);assert.equal(calculated.issues.filter(i=>i.code==='FX_CORRECTION').length,reference.corrections);calculated.rows.forEach((r,i)=>close(r.BalanceInMYR,reference.converted[i]));
+console.log('Python parity passed: 28 synthetic ledger rows, FX corrections, total assets, yield and liquid capital.');

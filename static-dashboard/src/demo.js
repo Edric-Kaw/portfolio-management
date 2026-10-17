@@ -1,0 +1,7 @@
+import {REQUIRED} from './asset-analysis.js';
+export function demoSource(){
+  const accounts=[['Cash','Bank account','Savings','Everyday savings','MYR',42000,.018,'Very High'],['Cash','Fixed deposit','12 month','Term deposit','MYR',78000,.038,'Medium'],['Investment','Equities','Global stocks','Global equity portfolio','USD',14000,0,'Medium'],['Investment','Unit trust','Balanced fund','Balanced portfolio','MYR',57000,.024,'Medium'],['Retirement','Retirement fund','Pension','Retirement savings','MYR',120000,.055,'Low'],['Cash','Money market','Money market fund','Reserve fund','MYR',34000,.032,'High'],['Investment','Equities','Singapore stocks','Regional equities','SGD',12500,0,'Medium']];
+  const dates=['2025-12-31','2026-03-31','2026-06-30','2026-09-30'];
+  const assets=dates.flatMap((date,i)=>accounts.map(([Type,Category,SubCategory,Account,Currency,base,InterestRate,CashLiquidity],j)=>({ReportingDate:date,Type,Category,SubCategory,Account,Currency,Balance:Math.round(base*(1+i*.038+(j%3)*i*.004)),BalanceInMYR:Currency==='MYR'?Math.round(base*(1+i*.038+(j%3)*i*.004)):0,InterestRate,CashLiquidity,MaturityDate:Category==='Fixed deposit'?'2027-06-30':'',__row:i*7+j+2})));
+  return {sheets:{Asset:assets,Reference:dates.flatMap((date,i)=>[{ReportingDate:date,Currency:'USD',Rate:4.45-i*.03},{ReportingDate:date,Currency:'SGD',Rate:3.32-i*.01}])},headers:{Asset:[...REQUIRED,'MaturityDate'],Reference:['ReportingDate','Currency','Rate']},issues:[],sheetNames:['Asset','Reference'],date1904:false};
+}

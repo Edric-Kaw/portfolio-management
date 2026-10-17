@@ -1,0 +1,98 @@
+# Python
+__pycache__/
+
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
+.env
+.env.*
+
+# IDE files
+.vscode/
+.idea/
+
+# codex files
+.codex_work/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Source files
+Backup/*
+InvestmentDetails.xlsx
+Expenses.csv
+
+# Codex files
+.codex_work/
+
+# Documentation files
+documentation/task.md
+documentation/walkthrough.md
+documentation/GCP_CLOUD_RUN_DEPLOYMENT_GUIDE.md
+documentation/PUBLIC_REPOSITORY_PRIVACY_REVIEW.md
+
+# Dependencies, builds, and generated test artifacts
+node_modules/
+dist/
+coverage/
+.pytest_cache/
+*.py[cod]
+playwright-report/
+test-results/
+static-dashboard/tests/output/
+
+# Local financial data and exports (including workbook metadata/link caches)
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*.csv
+*.tsv
+*.parquet
+*.sqlite
+*.sqlite3
+*.db
+
+# Credentials and local tool configuration
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.toml
+.streamlit/secrets.toml
+.aws/
+.agents/
+.npmrc
+.pypirc
+*.log
+
+# Analysis derived from private expense records
+Expenses_DataQuality_Mapping.md
+
+# Historical planning and local review records are not public deliverables
+documentation/*
+!documentation/Header description for Asset Worksheet.md
+!documentation/python_dashboard_walkthrough.md
+!documentation/PUBLICATION.md
+
+# Additional local exports, archives, and credential stores
+*.pdf
+*.zip
+*.7z
+*.bak
+*.backup
+*.dump
+*.sql
+*.kdbx
+*.p8
+*.jks
+.ssh/
+.azure/
+.gcloud/
+.config/gcloud/
+.codex/

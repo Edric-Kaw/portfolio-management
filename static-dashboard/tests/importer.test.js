@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as XLSX from 'xlsx';
+import {importWorkbook,MAX_BYTES} from '../src/importer.js';
+import {demoSource} from '../src/demo.js';
+import {normalize,calculate} from '../src/asset-analysis.js';
+function bytes(source,mutate){const wb=XLSX.utils.book_new();for(const [name,rows] of Object.entries(source.sheets))XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows.map(({__row,...r})=>r)),name);mutate?.(wb);return XLSX.write(wb,{type:'buffer',bookType:'xlsx'});}
+function file(buffer,name='synthetic.xlsx'){return new File([buffer],name);}
+test('Excel importer preserves date epochs, source row numbers, and cached formula provenance',async()=>{const src=demoSource();src.sheets.Asset[0].ReportingDate=44832;const parsed=await importWorkbook(file(bytes(src,wb=>{wb.Workbook={WBProps:{date1904:true}};wb.Sheets.Asset.H2={t:'n',v:42,f:'21*2'};})));assert.equal(parsed.date1904,true);assert.equal(parsed.sheets.Asset[0].__row,2);assert.ok(parsed.issues.some(i=>i.code==='FORMULA_CACHE'));assert.equal(parsed.sheets.Asset[0].BalanceInMYR,42);});
+test('formula without usable cache excludes only its source row and requires recalculation',async()=>{const parsed=await importWorkbook(file(bytes(demoSource(),wb=>{wb.Sheets.Asset.G2={t:'n',f:'1+1'};})));assert.equal(parsed.sheets.Asset.length,27);assert.ok(parsed.issues.some(i=>i.code==='FORMULA_NO_CACHE'&&i.row===2));assert.equal(calculate(normalize(parsed)).rows.length,27);});
+test('unsupported files, oversize input and merged headers are rejected',async()=>{await assert.rejects(importWorkbook(file(Buffer.from('x'),'test.html')),/Choose an .xlsx/);await assert.rejects(importWorkbook({name:'large.xlsx',size:MAX_BYTES+1}),/10 MB/);await assert.rejects(importWorkbook(file(bytes(demoSource(),wb=>{wb.Sheets.Asset['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];}))),/merged/);});
+test('missing Reference sheet still enables valid MYR assets and excludes unknown FX',async()=>{const src=demoSource();delete src.sheets.Reference;const result=calculate(normalize(await importWorkbook(file(bytes(src)))));assert.equal(result.rows.length,20);assert.equal(result.issues.filter(i=>i.code==='MISSING_FX').length,8);});
+test('audit retains original cached values and missing caches for excluded source rows',async()=>{const parsed=await importWorkbook(file(bytes(demoSource(),wb=>{wb.Sheets.Asset.H2={t:'n',v:0,f:'1-1'};wb.Sheets.Asset.G3={t:'n',f:'1+1'};})));const cached=parsed.issues.find(i=>i.row===2&&i.code==='FORMULA_CACHE');assert.equal(cached.field,'BalanceInMYR');assert.equal(cached.value,0);const missing=parsed.issues.find(i=>i.row===3&&i.code==='FORMULA_NO_CACHE');assert.equal(missing.value,null);});
